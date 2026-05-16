@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+faster-whisper
+requests
+pydantic
+sounddevice
+numpy
