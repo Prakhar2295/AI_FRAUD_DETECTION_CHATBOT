@@ -59,3 +59,6 @@ uuid_utils==0.15.0
 uvicorn==0.47.0
 xxhash==3.7.0
 zstandard==0.25.0
+websockets==16.0
+piper-tts==1.4.2
+soundfile==0.12.1

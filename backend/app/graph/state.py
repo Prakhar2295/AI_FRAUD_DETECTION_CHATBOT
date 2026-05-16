@@ -22,6 +22,13 @@ class FraudWorkflowState(TypedDict, total=False):
     workflow_history: list[dict[str, Any]]
     workflow_trace: list[str]
     node_timestamps: dict[str, str]
+    ai_response: dict[str, Any] | None
+    response_metadata: dict[str, Any] | None
+    playback_state: str | None
+    active_speaker: str | None
+    interruption_state: dict[str, Any] | None
+    conversation_turns: int | None
+    session_metadata: dict[str, Any] | None
     started_at: str
     completed_at: str | None
     errors: list[str]
@@ -54,6 +61,13 @@ def create_initial_state(
         "workflow_history": workflow_history or [],
         "workflow_trace": [],
         "node_timestamps": {},
+        "ai_response": None,
+        "response_metadata": None,
+        "playback_state": None,
+        "active_speaker": None,
+        "interruption_state": None,
+        "conversation_turns": None,
+        "session_metadata": None,
         "started_at": utc_now_iso(),
         "completed_at": None,
         "errors": [],

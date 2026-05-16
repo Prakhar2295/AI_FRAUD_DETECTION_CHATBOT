@@ -13,6 +13,8 @@ from app.realtime.websocket_manager import WebSocketManager
 from app.services.llm_service import OllamaLLMService
 from app.services.memory_service import MemoryService
 from app.services.stt_service import STTService
+from app.tts.piper_service import PiperNotInstalledTTSService, PiperTTSConfiguration, PiperTTSService
+from app.audio.audio_output_service import AudioOutputService
 from app.utils.logger import get_logger
 
 
@@ -32,6 +34,24 @@ def create_websocket_router(settings: Settings) -> APIRouter:
         timeout_seconds=settings.ollama_timeout_seconds,
     )
     memory_service = MemoryService()
+    audio_output_service = AudioOutputService(
+        output_device=settings.tts_output_device,
+        max_queue=settings.audio_queue_max_size,
+    )
+
+    try:
+        tts_service = PiperTTSService(
+            PiperTTSConfiguration(
+                model_name=settings.ollama_model,
+                voice_name=settings.tts_voice_name,
+                sample_rate=settings.audio_sample_rate,
+            )
+        )
+    except Exception:
+        tts_service = PiperNotInstalledTTSService(
+            sample_rate=settings.audio_sample_rate,
+            channels=settings.audio_channels,
+        )
 
     @router.websocket("/ws/voice/{session_id}")
     async def voice_stream(websocket: WebSocket, session_id: str) -> None:
@@ -43,6 +63,8 @@ def create_websocket_router(settings: Settings) -> APIRouter:
             stt_service=stt_service,
             llm_service=llm_service,
             memory_service=memory_service,
+            tts_service=tts_service,
+            audio_output_service=audio_output_service,
         )
         pipeline_task = asyncio.create_task(pipeline.run())
         sequence = 0
@@ -57,6 +79,9 @@ def create_websocket_router(settings: Settings) -> APIRouter:
                     "channels": settings.audio_channels,
                     "encoding": "pcm_s16le",
                     "audio_window_seconds": settings.audio_window_seconds,
+                    "tts_voice": settings.tts_voice_name,
+                    "tts_language": settings.tts_language,
+                    "tts_style": settings.tts_voice_style,
                 },
             ),
         )

@@ -28,6 +28,10 @@ class Settings:
     audio_chunk_size_bytes: int
     audio_window_seconds: float
     audio_queue_max_size: int
+    tts_voice_name: str
+    tts_voice_style: str
+    tts_language: str
+    tts_output_device: str | None
     vad_energy_threshold: float
     vad_min_speech_chunks: int
     low_risk_max_score: int
@@ -64,6 +68,10 @@ def load_settings() -> Settings:
         audio_chunk_size_bytes=int(os.getenv("AUDIO_CHUNK_SIZE_BYTES", "3200")),
         audio_window_seconds=float(os.getenv("AUDIO_WINDOW_SECONDS", "3")),
         audio_queue_max_size=int(os.getenv("AUDIO_QUEUE_MAX_SIZE", "32")),
+        tts_voice_name=os.getenv("TTS_VOICE_NAME", "alloy"),
+        tts_voice_style=os.getenv("TTS_VOICE_STYLE", "neutral"),
+        tts_language=os.getenv("TTS_LANGUAGE", "en"),
+        tts_output_device=os.getenv("TTS_OUTPUT_DEVICE", "" ) or None,
         vad_energy_threshold=float(os.getenv("VAD_ENERGY_THRESHOLD", "0.01")),
         vad_min_speech_chunks=int(os.getenv("VAD_MIN_SPEECH_CHUNKS", "1")),
         low_risk_max_score=int(os.getenv("LOW_RISK_MAX_SCORE", "30")),

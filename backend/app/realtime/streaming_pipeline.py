@@ -6,20 +6,20 @@ import asyncio
 from typing import Any
 
 from app.config.settings import Settings
-from app.graph.fraud_workflow import build_fraud_workflow
-from app.graph.state import create_initial_state
-from app.models.response_models import RiskAnalysisResponse, WorkflowOutputResponse
 from app.models.websocket_models import (
     StreamingTranscriptionUpdate,
     WebSocketOutboundMessage,
 )
+from app.audio.audio_output_service import AudioOutputService
 from app.realtime.audio_stream_manager import AudioStreamManager
 from app.realtime.chunk_processor import ChunkProcessor, TranscriptionWindow
+from app.realtime.conversation_coordinator import ConversationCoordinator
 from app.realtime.vad_service import VADService
 from app.realtime.websocket_manager import WebSocketManager
 from app.services.llm_service import OllamaLLMService
 from app.services.memory_service import MemoryService
 from app.services.stt_service import STTService
+from app.tts.tts_service import TTSService
 from app.utils.logger import get_logger
 
 
@@ -34,6 +34,8 @@ class StreamingPipeline:
         stt_service: STTService,
         llm_service: OllamaLLMService,
         memory_service: MemoryService,
+        tts_service: TTSService,
+        audio_output_service: AudioOutputService,
     ) -> None:
         self.session_id = session_id
         self.settings = settings
@@ -41,8 +43,19 @@ class StreamingPipeline:
         self.stt_service = stt_service
         self.llm_service = llm_service
         self.memory_service = memory_service
+        self.tts_service = tts_service
+        self.audio_output_service = audio_output_service
         self.audio_stream = AudioStreamManager(settings, session_id)
         self.chunk_processor = ChunkProcessor(settings, VADService(settings))
+        self.coordinator = ConversationCoordinator(
+            session_id=session_id,
+            settings=settings,
+            websocket_manager=websocket_manager,
+            llm_service=llm_service,
+            memory_service=memory_service,
+            tts_service=tts_service,
+            audio_output_service=audio_output_service,
+        )
         self.logger = get_logger(f"{self.__class__.__name__}.{session_id}")
         self._running = False
         self._accumulated_transcript = ""
@@ -94,6 +107,7 @@ class StreamingPipeline:
         """Request pipeline shutdown."""
         self._running = False
         await self.audio_stream.enqueue_stop()
+        await self.audio_output_service.stop()
 
     async def enqueue_audio(self, payload: bytes, sequence: int) -> None:
         """Queue a binary PCM16 audio chunk for processing."""
@@ -154,47 +168,11 @@ class StreamingPipeline:
             part for part in [self._accumulated_transcript, partial] if part
         ).strip()
         await self._send_transcription_update(partial, window.end_sequence)
-        await self._execute_workflow(partial, window.end_sequence)
-
-    async def _execute_workflow(self, partial: str, sequence: int) -> None:
-        workflow = build_fraud_workflow(
-            llm_service=self.llm_service,
-            memory_service=self.memory_service,
-            settings=self.settings,
+        await self.coordinator.handle_transcription_window(
+            transcript=partial,
+            sequence=window.end_sequence,
+            accumulated_transcript=self._accumulated_transcript,
         )
-        initial_state = create_initial_state(
-            session_id=self.session_id,
-            transcript=self._accumulated_transcript,
-            partial_transcript=partial,
-            stream_sequence=sequence,
-            workflow_history=self._workflow_history,
-        )
-
-        try:
-            final_state = await asyncio.to_thread(workflow.invoke, initial_state)
-            output = self._workflow_output(final_state)
-            self._workflow_history.append(self._model_to_dict(output))
-            await self.websocket_manager.send_message(
-                self.session_id,
-                WebSocketOutboundMessage(
-                    type="fraud_intelligence",
-                    session_id=self.session_id,
-                    payload=self._model_to_dict(output),
-                ),
-            )
-            await self.websocket_manager.send_message(
-                self.session_id,
-                WebSocketOutboundMessage(
-                    type="session_state",
-                    session_id=self.session_id,
-                    payload={
-                        "sequence": sequence,
-                        "workflow_history_count": len(self._workflow_history),
-                    },
-                ),
-            )
-        except Exception as exc:
-            await self._send_error(f"Workflow execution failed: {exc}")
 
     async def _send_transcription_update(self, partial: str, sequence: int) -> None:
         update = StreamingTranscriptionUpdate(
@@ -222,25 +200,6 @@ class StreamingPipeline:
                 session_id=self.session_id,
                 payload={"message": message},
             ),
-        )
-
-    def _workflow_output(self, state: dict[str, Any]) -> WorkflowOutputResponse:
-        risk = RiskAnalysisResponse(**state["risk"])
-        history = state.get("conversation_history", [])
-        return WorkflowOutputResponse(
-            session_id=state["session_id"],
-            transcript=state["transcript"],
-            partial_transcript=state.get("partial_transcript"),
-            stream_sequence=state.get("stream_sequence"),
-            intent_classification=state.get("intent"),
-            suspicious_indicators=state.get("suspicious_indicators", []),
-            fraud_risk_score=risk.fraud_risk_score,
-            risk_level=risk.risk_level,
-            reasoning_summary=risk.reasoning_summary,
-            workflow_execution_trace=state.get("workflow_trace", []),
-            node_execution_timestamps=state.get("node_timestamps", {}),
-            conversation_turn_count=len(history),
-            errors=state.get("errors", []),
         )
 
     @staticmethod

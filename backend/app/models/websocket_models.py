@@ -15,6 +15,8 @@ OutboundMessageType = Literal[
     "ack",
     "transcription_update",
     "fraud_intelligence",
+    "ai_response",
+    "tts_status",
     "session_state",
     "error",
     "session_closed",

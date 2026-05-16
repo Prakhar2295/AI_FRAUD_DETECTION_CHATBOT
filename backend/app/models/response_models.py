@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -56,8 +56,16 @@ class RiskAnalysisResponse(BaseModel):
     reasoning_summary: str
 
 
+class AIResponse(BaseModel):
+    """Structured AI response intended for spoken output."""
+
+    response_text: str
+    voice_style: Literal["neutral", "reassuring", "urgent", "escalation"] = "neutral"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class WorkflowOutputResponse(BaseModel):
-    """Final Phase 2 fraud intelligence output."""
+    """Final Phase 4 conversational fraud intelligence output."""
 
     session_id: str
     transcript: str
@@ -71,4 +79,5 @@ class WorkflowOutputResponse(BaseModel):
     workflow_execution_trace: list[str]
     node_execution_timestamps: dict[str, str]
     conversation_turn_count: int
+    ai_response: AIResponse | None = None
     errors: list[str] = Field(default_factory=list)
