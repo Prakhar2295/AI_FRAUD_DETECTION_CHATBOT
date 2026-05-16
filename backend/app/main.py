@@ -1,4 +1,4 @@
-"""Phase 2 live voice-to-fraud-intelligence pipeline entry point."""
+"""Application entry point for CLI and FastAPI realtime streaming."""
 
 from __future__ import annotations
 
@@ -9,11 +9,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import uvicorn
+from fastapi import FastAPI
+
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.config.settings import Settings, load_settings
+from app.api.websocket import create_websocket_router
 from app.graph.fraud_workflow import build_fraud_workflow
 from app.graph.state import create_initial_state
 from app.models.response_models import RiskAnalysisResponse, WorkflowOutputResponse
@@ -114,6 +118,8 @@ def _workflow_output(state: dict[str, Any]) -> WorkflowOutputResponse:
     return WorkflowOutputResponse(
         session_id=state["session_id"],
         transcript=state["transcript"],
+        partial_transcript=state.get("partial_transcript"),
+        stream_sequence=state.get("stream_sequence"),
         intent_classification=state.get("intent"),
         suspicious_indicators=state.get("suspicious_indicators", []),
         fraud_risk_score=risk.fraud_risk_score,
@@ -131,14 +137,39 @@ def _new_session_id() -> str:
     return f"local-session-{timestamp}"
 
 
+def create_app() -> FastAPI:
+    """Create the FastAPI application with realtime WebSocket routes."""
+    settings = load_settings()
+    app = FastAPI(title="Banking Fraud Detection Voice AI")
+    app.include_router(create_websocket_router(settings))
+
+    @app.get("/health")
+    async def health() -> dict[str, str]:
+        return {"status": "ok", "model": settings.ollama_model}
+
+    return app
+
+
 def main() -> None:
-    """Execute the Phase 2 live microphone pipeline."""
+    """Execute either the realtime server or the Phase 2 microphone CLI."""
     logger = get_logger("main")
     session_id = os.getenv("SESSION_ID")
+    settings = load_settings()
 
-    logger.info("Running Phase 2 live voice pipeline")
-    output = run_live_voice_pipeline(session_id=session_id)
-    print(json.dumps(_model_to_dict(output), indent=2))
+    if os.getenv("RUN_MODE", "server") == "cli":
+        logger.info("Running Phase 2 live voice CLI pipeline")
+        output = run_live_voice_pipeline(session_id=session_id)
+        print(json.dumps(_model_to_dict(output), indent=2))
+        return
+
+    logger.info("Starting Phase 3 realtime WebSocket server")
+    uvicorn.run(
+        "app.main:create_app",
+        host=settings.websocket_host,
+        port=settings.websocket_port,
+        factory=True,
+        reload=False,
+    )
 
 
 if __name__ == "__main__":

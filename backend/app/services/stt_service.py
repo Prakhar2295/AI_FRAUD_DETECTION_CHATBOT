@@ -5,7 +5,11 @@ from __future__ import annotations
 import asyncio
 from functools import cached_property
 from pathlib import Path
+from uuid import uuid4
 from typing import Iterable
+
+import numpy as np
+from scipy.io.wavfile import write
 
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import Segment, TranscriptionInfo
@@ -72,6 +76,43 @@ class STTService:
     async def transcribe_audio_async(self, audio_path: Path) -> TranscriptionResponse:
         """Async-ready wrapper for file transcription."""
         return await asyncio.to_thread(self.transcribe_audio, audio_path)
+
+    def transcribe_pcm_window(
+        self,
+        pcm_audio: bytes,
+        sample_rate: int,
+        channels: int,
+        temp_dir: Path,
+    ) -> TranscriptionResponse:
+        """Transcribe a PCM16 audio window by materializing a temporary WAV file."""
+        if not pcm_audio:
+            raise ValueError("PCM audio window cannot be empty")
+
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        audio_path = temp_dir / f"stream_window_{uuid4().hex}.wav"
+        samples = np.frombuffer(pcm_audio, dtype=np.int16)
+        if channels > 1:
+            samples = samples.reshape(-1, channels)
+
+        write(audio_path, sample_rate, samples)
+        self.logger.info("Prepared streaming transcription window: %s", audio_path)
+        return self.transcribe_audio(audio_path)
+
+    async def transcribe_pcm_window_async(
+        self,
+        pcm_audio: bytes,
+        sample_rate: int,
+        channels: int,
+        temp_dir: Path,
+    ) -> TranscriptionResponse:
+        """Async-ready wrapper for pseudo-streaming transcription."""
+        return await asyncio.to_thread(
+            self.transcribe_pcm_window,
+            pcm_audio,
+            sample_rate,
+            channels,
+            temp_dir,
+        )
 
     @staticmethod
     def _join_segments(segments: Iterable[Segment]) -> str:

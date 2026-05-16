@@ -6,21 +6,19 @@ This backend is being built phase by phase. Keep phase-specific implementation n
 
 - [Phase 1: Offline Voice Intelligence Pipeline](README_Phase_1.md)
 - [Phase 2: Live Voice + LangGraph Conversational Intelligence](README_Phase_2.md)
+- [Phase 3: FastAPI WebSocket Realtime Streaming Infrastructure](README_Phase_3.md)
 
 ## Current Phase
 
-The current implementation is Phase 2:
+The current implementation is Phase 3:
 
 ```text
-Microphone Input
--> Live Audio Capture
--> faster-whisper speech-to-text
+Microphone Audio Stream
+-> Audio Chunking
+-> FastAPI WebSocket Streaming
+-> Streaming STT Processing
 -> LangGraph workflow execution
--> Intent analysis
--> Fraud analysis
--> Risk scoring
--> Conversation memory tracking
--> Structured fraud intelligence output
+-> Streaming Fraud Intelligence Output
 ```
 
 ## Quick Start
@@ -40,9 +38,13 @@ ollama serve
 ollama pull qwen2.5:1.5b
 ```
 
-On macOS, allow microphone access for VS Code or your terminal when prompted.
+The realtime WebSocket endpoint is:
+
+```text
+ws://127.0.0.1:8000/ws/voice/{session_id}
+```
 
 ## Documentation Rule
 
-For future phases, create a new file such as `README_Phase_3.md` and add it to the phase list above. Keep this `README.md` as the stable index and quick-start page.
+For future phases, create a new file such as `README_Phase_4.md` and add it to the phase list above. Keep this `README.md` as the stable index and quick-start page.
 

@@ -23,6 +23,13 @@ class Settings:
     audio_sample_rate: int
     audio_channels: int
     temp_audio_dir: Path
+    websocket_host: str
+    websocket_port: int
+    audio_chunk_size_bytes: int
+    audio_window_seconds: float
+    audio_queue_max_size: int
+    vad_energy_threshold: float
+    vad_min_speech_chunks: int
     low_risk_max_score: int
     medium_risk_max_score: int
     log_level: str
@@ -52,8 +59,14 @@ def load_settings() -> Settings:
         audio_sample_rate=int(os.getenv("AUDIO_SAMPLE_RATE", "16000")),
         audio_channels=int(os.getenv("AUDIO_CHANNELS", "1")),
         temp_audio_dir=temp_audio_dir.expanduser().resolve(),
+        websocket_host=os.getenv("WEBSOCKET_HOST", "127.0.0.1"),
+        websocket_port=int(os.getenv("WEBSOCKET_PORT", "8000")),
+        audio_chunk_size_bytes=int(os.getenv("AUDIO_CHUNK_SIZE_BYTES", "3200")),
+        audio_window_seconds=float(os.getenv("AUDIO_WINDOW_SECONDS", "3")),
+        audio_queue_max_size=int(os.getenv("AUDIO_QUEUE_MAX_SIZE", "32")),
+        vad_energy_threshold=float(os.getenv("VAD_ENERGY_THRESHOLD", "0.01")),
+        vad_min_speech_chunks=int(os.getenv("VAD_MIN_SPEECH_CHUNKS", "1")),
         low_risk_max_score=int(os.getenv("LOW_RISK_MAX_SCORE", "30")),
         medium_risk_max_score=int(os.getenv("MEDIUM_RISK_MAX_SCORE", "70")),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
     )
-

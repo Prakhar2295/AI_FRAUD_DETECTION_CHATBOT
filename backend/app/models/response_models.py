@@ -61,6 +61,8 @@ class WorkflowOutputResponse(BaseModel):
 
     session_id: str
     transcript: str
+    partial_transcript: str | None = None
+    stream_sequence: int | None = None
     intent_classification: IntentAnalysisResponse | None
     suspicious_indicators: list[str]
     fraud_risk_score: int
