@@ -30,7 +30,7 @@ class FraudAnalysisService:
             response = FraudAnalysisResponse(
                 transcription=transcription,
                 fraud_risk_score=llm_payload["fraud_risk_score"],
-                risk_level=llm_payload["risk_level"],
+                risk_level=str(llm_payload["risk_level"]).lower(),
                 suspicious_indicators=llm_payload["suspicious_indicators"],
                 llm_reasoning=llm_payload["llm_reasoning"],
             )
