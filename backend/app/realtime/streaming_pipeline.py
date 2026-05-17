@@ -21,6 +21,7 @@ from app.services.memory_service import MemoryService
 from app.services.stt_service import STTService
 from app.tts.tts_service import TTSService
 from app.utils.logger import get_logger
+from app.fraud_audio.fraud_audio_pipeline import FraudAudioPipeline
 
 
 class StreamingPipeline:
@@ -60,11 +61,13 @@ class StreamingPipeline:
         self._running = False
         self._accumulated_transcript = ""
         self._workflow_history: list[dict[str, Any]] = []
+        self.fraud_pipeline = FraudAudioPipeline()
 
     async def run(self) -> None:
         """Consume audio queue items until stopped."""
         self._running = True
         self.logger.info("Streaming pipeline started")
+        await self.fraud_pipeline.start()
         try:
             while self._running:
                 item = await self.audio_stream.next_item()
@@ -101,6 +104,7 @@ class StreamingPipeline:
                     payload={"reason": "pipeline_stopped"},
                 ),
             )
+            await self.fraud_pipeline.stop()
             self.logger.info("Streaming pipeline stopped")
 
     async def stop(self) -> None:
@@ -108,6 +112,7 @@ class StreamingPipeline:
         self._running = False
         await self.audio_stream.enqueue_stop()
         await self.audio_output_service.stop()
+        await self.fraud_pipeline.stop()
 
     async def enqueue_audio(self, payload: bytes, sequence: int) -> None:
         """Queue a binary PCM16 audio chunk for processing."""
@@ -148,6 +153,16 @@ class StreamingPipeline:
             window.end_sequence,
             len(window.payload),
         )
+        # start fraud audio analysis concurrently; attempt a short wait for quick results
+        fraud_future = None
+        try:
+            fraud_future = await self.fraud_pipeline.enqueue_audio(
+                self.session_id, window.payload, window.sample_rate, window.end_sequence
+            )
+        except Exception:
+            self.logger.exception("Failed to enqueue fraud audio analysis")
+
+        transcription = None
         try:
             transcription = await self.stt_service.transcribe_pcm_window_async(
                 pcm_audio=window.payload,
@@ -168,10 +183,34 @@ class StreamingPipeline:
             part for part in [self._accumulated_transcript, partial] if part
         ).strip()
         await self._send_transcription_update(partial, window.end_sequence)
+        # try to get a quick fraud analysis result; otherwise defer publishing
+        fraud_metadata = None
+        if fraud_future is not None:
+            try:
+                fraud_metadata = await asyncio.wait_for(fraud_future, timeout=1.5)
+            except asyncio.TimeoutError:
+                # publish later when ready
+                async def _publish_when_ready(fut, seq):
+                    try:
+                        res = await fut
+                        await self.websocket_manager.send_message(
+                            self.session_id,
+                            WebSocketOutboundMessage(
+                                type="fraud_audio",
+                                session_id=self.session_id,
+                                payload={"sequence": seq, "fraud_audio": res},
+                            ),
+                        )
+                    except Exception:
+                        self.logger.exception("Deferred fraud analysis failed")
+
+                asyncio.create_task(_publish_when_ready(fraud_future, window.end_sequence))
+
         await self.coordinator.handle_transcription_window(
             transcript=partial,
             sequence=window.end_sequence,
             accumulated_transcript=self._accumulated_transcript,
+            fraud_metadata=fraud_metadata,
         )
 
     async def _send_transcription_update(self, partial: str, sequence: int) -> None:

@@ -58,6 +58,7 @@ class ConversationCoordinator:
         transcript: str,
         sequence: int,
         accumulated_transcript: str,
+        fraud_metadata: dict | None = None,
     ) -> None:
         async with self._lock:
             self.turn_manager.start_user_turn()
@@ -79,6 +80,9 @@ class ConversationCoordinator:
                 stream_sequence=sequence,
                 workflow_history=self._workflow_history,
             )
+
+            if fraud_metadata is not None:
+                initial_state["fraud_audio"] = fraud_metadata
 
             try:
                 final_state = await asyncio.to_thread(workflow.invoke, initial_state)

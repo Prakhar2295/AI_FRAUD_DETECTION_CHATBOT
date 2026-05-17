@@ -24,6 +24,7 @@ class FraudWorkflowState(TypedDict, total=False):
     node_timestamps: dict[str, str]
     ai_response: dict[str, Any] | None
     response_metadata: dict[str, Any] | None
+    fraud_audio: dict[str, Any] | None
     playback_state: str | None
     active_speaker: str | None
     interruption_state: dict[str, Any] | None
