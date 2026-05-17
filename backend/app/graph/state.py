@@ -27,6 +27,11 @@ class FraudWorkflowState(TypedDict, total=False):
     fraud_audio: dict[str, Any] | None
     behavioral: dict[str, Any] | None
     behavioral_metadata: dict[str, Any] | None
+    retrieved_fraud_patterns: list[dict[str, Any]]
+    semantic_retrieval_metadata: dict[str, Any] | None
+    historical_fraud_context: dict[str, Any] | None
+    adaptive_risk_enrichment: dict[str, Any] | None
+    fraud_knowledge_context: dict[str, Any] | None
     playback_state: str | None
     active_speaker: str | None
     interruption_state: dict[str, Any] | None
@@ -69,6 +74,11 @@ def create_initial_state(
         "fraud_audio": None,
         "behavioral": None,
         "behavioral_metadata": None,
+        "retrieved_fraud_patterns": [],
+        "semantic_retrieval_metadata": None,
+        "historical_fraud_context": None,
+        "adaptive_risk_enrichment": None,
+        "fraud_knowledge_context": None,
         "playback_state": None,
         "active_speaker": None,
         "interruption_state": None,

@@ -7,18 +7,21 @@ This backend is being built phase by phase. Keep phase-specific implementation n
 - [Phase 1: Offline Voice Intelligence Pipeline](README_Phase_1.md)
 - [Phase 2: Live Voice + LangGraph Conversational Intelligence](README_Phase_2.md)
 - [Phase 3: FastAPI WebSocket Realtime Streaming Infrastructure](README_Phase_3.md)
+- [Phase 4: Conversational Response Layer](README_Phase_4.md)
+- [Phase 5: Audio Fraud Intelligence](README_Phase_5.md)
+- [Phase 7: Persistent Fraud Memory and Adaptive Intelligence](README_Phase_7.md)
 
 ## Current Phase
 
-The current implementation is Phase 3:
+The current implementation is Phase 7:
 
 ```text
-Microphone Audio Stream
--> Audio Chunking
--> FastAPI WebSocket Streaming
--> Streaming STT Processing
--> LangGraph workflow execution
--> Streaming Fraud Intelligence Output
+Realtime Fraud Intelligence
+-> Persistent Fraud Memory
+-> Semantic Fraud Retrieval
+-> Adaptive Risk Enrichment
+-> Cross-Session Fraud Intelligence
+-> Conversational AI Response
 ```
 
 ## Quick Start
@@ -47,4 +50,3 @@ ws://127.0.0.1:8000/ws/voice/{session_id}
 ## Documentation Rule
 
 For future phases, create a new file such as `README_Phase_4.md` and add it to the phase list above. Keep this `README.md` as the stable index and quick-start page.
-

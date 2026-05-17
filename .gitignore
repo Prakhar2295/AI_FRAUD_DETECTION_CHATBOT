@@ -5,3 +5,5 @@ __pycache__/
 backend/data/tmp/
 .env
 .DS_Store
+bank
+bank312

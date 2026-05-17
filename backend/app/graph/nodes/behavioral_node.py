@@ -72,7 +72,7 @@ Return only valid JSON with this exact schema:
 }}
 
 Transcript:
-"""{transcript}"""
+{transcript}
 
 Fraud audio metadata:
 {fraud_audio}

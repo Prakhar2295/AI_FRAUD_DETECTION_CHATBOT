@@ -32,6 +32,13 @@ class Settings:
     tts_voice_style: str
     tts_language: str
     tts_output_device: str | None
+    chroma_persist_dir: Path
+    chroma_collection_name: str
+    embedding_model_name: str
+    embedding_provider: str
+    embedding_dimensions: int
+    retrieval_top_k: int
+    retrieval_similarity_threshold: float
     vad_energy_threshold: float
     vad_min_speech_chunks: int
     low_risk_max_score: int
@@ -72,6 +79,15 @@ def load_settings() -> Settings:
         tts_voice_style=os.getenv("TTS_VOICE_STYLE", "neutral"),
         tts_language=os.getenv("TTS_LANGUAGE", "en"),
         tts_output_device=os.getenv("TTS_OUTPUT_DEVICE", "" ) or None,
+        chroma_persist_dir=Path(
+            os.getenv("CHROMA_PERSIST_DIR", str(backend_root / "data" / "chroma"))
+        ).expanduser().resolve(),
+        chroma_collection_name=os.getenv("CHROMA_COLLECTION_NAME", "fraud_memory"),
+        embedding_model_name=os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2"),
+        embedding_provider=os.getenv("EMBEDDING_PROVIDER", "deterministic"),
+        embedding_dimensions=int(os.getenv("EMBEDDING_DIMENSIONS", "128")),
+        retrieval_top_k=int(os.getenv("RETRIEVAL_TOP_K", "4")),
+        retrieval_similarity_threshold=float(os.getenv("RETRIEVAL_SIMILARITY_THRESHOLD", "0.55")),
         vad_energy_threshold=float(os.getenv("VAD_ENERGY_THRESHOLD", "0.01")),
         vad_min_speech_chunks=int(os.getenv("VAD_MIN_SPEECH_CHUNKS", "1")),
         low_risk_max_score=int(os.getenv("LOW_RISK_MAX_SCORE", "30")),

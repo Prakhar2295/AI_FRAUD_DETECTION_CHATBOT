@@ -160,6 +160,40 @@ If no Piper CLI is available, the system will continue running with placeholder 
 3. Send PCM16 audio frames and `flush` events.
 4. Confirm the server emits transcription updates, fraud intelligence, AI response metadata, and TTS playback status.
 
+## Phase 7: Persistent Fraud Memory and Adaptive Intelligence
+
+Phase 7 introduces a modular persistent memory layer, vector-based fraud retrieval, adaptive risk enrichment, and cross-session fraud learning.
+
+- Persistent session memory for long-term conversational context
+- Vectorized fraud memory using ChromaDB semantics
+- Fraud pattern retrieval and knowledge enrichment
+- Adaptive risk scoring based on historical and retrieval signals
+- Structured workflow metadata for retrieval and enrichment
+
+## Phase 7 setup notes
+
+1. Install the additional Phase 7 dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+2. Ensure Ollama is running locally.
+3. If `chromadb` is unavailable, the system falls back to an in-memory vector store for development.
+
+## Memory and retrieval testing instructions
+
+1. Start the server.
+2. Send voice audio and observe workflow outputs.
+3. Confirm the final response payload includes:
+   - `retrieved_fraud_patterns`
+   - `semantic_retrieval_metadata`
+   - `historical_context`
+   - `adaptive_risk_enrichment`
+   - `fraud_knowledge_context`
+
+4. Use repeated sessions to validate cross-session adaptive memory behavior.
+
 ## Future extension paths
 
 - barge-in and duplex audio streaming

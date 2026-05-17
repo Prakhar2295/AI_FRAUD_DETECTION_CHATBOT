@@ -92,6 +92,11 @@ class WorkflowOutputResponse(BaseModel):
     workflow_execution_trace: list[str]
     node_execution_timestamps: dict[str, str]
     conversation_turn_count: int
+    retrieved_fraud_patterns: list[dict[str, Any]] = Field(default_factory=list)
+    semantic_retrieval_metadata: dict[str, Any] = Field(default_factory=dict)
+    historical_context: dict[str, Any] | None = None
+    adaptive_risk_enrichment: dict[str, Any] = Field(default_factory=dict)
+    fraud_knowledge_context: dict[str, Any] | None = None
     behavioral: BehavioralAnalysisResponse | None = None
     ai_response: AIResponse | None = None
     errors: list[str] = Field(default_factory=list)

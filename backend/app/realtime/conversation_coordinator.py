@@ -84,9 +84,9 @@ class ConversationCoordinator:
 
             if fraud_metadata is not None:
                 initial_state["fraud_audio"] = fraud_metadata
-+            if behavioral_metadata is not None:
-+                initial_state["behavioral"] = behavioral_metadata
-+                initial_state["behavioral_metadata"] = behavioral_metadata
+            if behavioral_metadata is not None:
+                initial_state["behavioral"] = behavioral_metadata
+                initial_state["behavioral_metadata"] = behavioral_metadata
 
             try:
                 final_state = await asyncio.to_thread(workflow.invoke, initial_state)
@@ -238,6 +238,11 @@ class ConversationCoordinator:
             workflow_execution_trace=state.get("workflow_trace", []),
             node_execution_timestamps=state.get("node_timestamps", {}),
             conversation_turn_count=state.get("conversation_turns", 0),
+            retrieved_fraud_patterns=state.get("retrieved_fraud_patterns", []),
+            semantic_retrieval_metadata=state.get("semantic_retrieval_metadata", {}),
+            historical_context=state.get("historical_fraud_context"),
+            adaptive_risk_enrichment=state.get("adaptive_risk_enrichment", {}),
+            fraud_knowledge_context=state.get("fraud_knowledge_context"),
             behavioral=state.get("behavioral"),
             ai_response=state.get("ai_response"),
             errors=state.get("errors", []),
