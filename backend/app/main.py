@@ -18,6 +18,12 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app.config.settings import Settings, load_settings
 from app.api.websocket import create_websocket_router
+from app.api import health as health_api
+from app.api import conversation as conversation_api
+from app.api import audio as audio_api
+from app.api import retrieval as retrieval_api
+from app.api import memory as memory_api
+from app.api import analytics as analytics_api
 from app.graph.fraud_workflow import build_fraud_workflow
 from app.graph.state import create_initial_state
 from app.models.response_models import RiskAnalysisResponse, WorkflowOutputResponse
@@ -147,13 +153,21 @@ def _new_session_id() -> str:
 def create_app() -> FastAPI:
     """Create the FastAPI application with realtime WebSocket routes."""
     settings = load_settings()
-    app = FastAPI(title="Banking Fraud Detection Voice AI")
+    # Enable FastAPI debug mode when DEBUG_SERVER env var is truthy.
+    debug_flag = os.getenv("DEBUG_SERVER", "false").lower() in ("1", "true", "yes")
+    app = FastAPI(title="Banking Fraud Detection Voice AI", debug=debug_flag)
+    # WebSocket router (streaming)
     app.include_router(create_websocket_router(settings))
 
-    @app.get("/health")
-    async def health() -> dict[str, str]:
-        return {"status": "ok", "model": settings.ollama_model}
+    # REST API routers (versioned)
+    app.include_router(health_api.router)
+    app.include_router(conversation_api.router)
+    app.include_router(audio_api.router)
+    app.include_router(retrieval_api.router)
+    app.include_router(memory_api.router)
+    app.include_router(analytics_api.router)
 
+    # Health endpoint provided by `app.api.health`
     return app
 
 
@@ -169,13 +183,15 @@ def main() -> None:
         print(json.dumps(_model_to_dict(output), indent=2))
         return
 
-    logger.info("Starting Phase 3 realtime WebSocket server")
+    debug_env = os.getenv("DEBUG_SERVER", "false").lower() in ("1", "true", "yes")
+    logger.info("Starting Phase 3 realtime WebSocket server | debug=%s", debug_env)
     uvicorn.run(
         "app.main:create_app",
         host=settings.websocket_host,
         port=settings.websocket_port,
         factory=True,
-        reload=False,
+        reload=debug_env,
+        log_level="debug" if debug_env else settings.log_level.lower(),
     )
 
 

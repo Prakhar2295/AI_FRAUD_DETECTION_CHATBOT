@@ -1,0 +1,30 @@
+2026-05-17 15:28:12 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 15:28:12 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 15:28:12 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:03:35 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:03:35 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:03:35 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:05:26 | INFO | HealthAPI | Health API request start | endpoint=/health | method=GET
+2026-05-17 17:05:26 | INFO | STTService | Loading Whisper model: size=base device=cpu compute_type=int8
+2026-05-17 17:05:26 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:05:26 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:05:26 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:05:26 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:05:27 | INFO | HealthAPI | Health API request completed | services={'ollama': 'connected', 'whisper': 'loaded', 'chromadb': 'connected', 'memory': 'ready'}
+2026-05-17 17:09:27 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:09:27 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:09:27 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:10:19 | INFO | HealthAPI | Health API request start | endpoint=/health | method=GET
+2026-05-17 17:10:19 | INFO | STTService | Loading Whisper model: size=base device=cpu compute_type=int8
+2026-05-17 17:10:19 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:10:19 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:10:19 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:10:19 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:10:20 | INFO | HealthAPI | Health API request completed | services={'ollama': 'connected', 'whisper': 'loaded', 'chromadb': 'connected', 'memory': 'ready'}
+2026-05-17 17:13:01 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:13:01 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:13:01 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
+2026-05-17 17:17:14 | INFO | main | Starting Phase 3 realtime WebSocket server | debug=False
+2026-05-17 17:17:21 | INFO | EmbeddingService | Using deterministic local embedding provider
+2026-05-17 17:17:21 | INFO | ChromaManager | Initialized Chroma collection=fraud_memory path=/Users/prakhar/Projects/FRAUD_DETECTION_CHATBOT/backend/data/chroma
+2026-05-17 17:17:21 | INFO | FraudPatternStore | Loaded default fraud patterns count=3
