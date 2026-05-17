@@ -25,6 +25,8 @@ class FraudWorkflowState(TypedDict, total=False):
     ai_response: dict[str, Any] | None
     response_metadata: dict[str, Any] | None
     fraud_audio: dict[str, Any] | None
+    behavioral: dict[str, Any] | None
+    behavioral_metadata: dict[str, Any] | None
     playback_state: str | None
     active_speaker: str | None
     interruption_state: dict[str, Any] | None
@@ -64,6 +66,9 @@ def create_initial_state(
         "node_timestamps": {},
         "ai_response": None,
         "response_metadata": None,
+        "fraud_audio": None,
+        "behavioral": None,
+        "behavioral_metadata": None,
         "playback_state": None,
         "active_speaker": None,
         "interruption_state": None,

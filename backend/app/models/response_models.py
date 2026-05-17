@@ -64,6 +64,19 @@ class AIResponse(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class BehavioralAnalysisResponse(BaseModel):
+    """Structured behavioral fraud intelligence result."""
+
+    behavioral_risk_score: int = Field(ge=0, le=100)
+    urgency_score: float = Field(ge=0.0, le=1.0)
+    emotional_risk_score: float = Field(ge=0.0, le=1.0)
+    manipulation_indicators: list[str]
+    hesitation_score: float = Field(ge=0.0, le=1.0)
+    stress_score: float = Field(ge=0.0, le=1.0)
+    social_engineering_confidence: float = Field(ge=0.0, le=1.0)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class WorkflowOutputResponse(BaseModel):
     """Final Phase 4 conversational fraud intelligence output."""
 
@@ -79,5 +92,6 @@ class WorkflowOutputResponse(BaseModel):
     workflow_execution_trace: list[str]
     node_execution_timestamps: dict[str, str]
     conversation_turn_count: int
+    behavioral: BehavioralAnalysisResponse | None = None
     ai_response: AIResponse | None = None
     errors: list[str] = Field(default_factory=list)
