@@ -71,11 +71,67 @@ class MemoryService:
 
     @staticmethod
     def _build_embedding_text(interaction: ConversationInteraction) -> str:
-        pieces = [
-            interaction.transcript,
-            str(interaction.fraud),
-            str(interaction.behavioral),
-            str(interaction.fraud_audio),
-            str(interaction.retrieved_fraud_patterns),
-        ]
-        return "\n".join(piece for piece in pieces if piece and piece != "None")
+
+        transcript = interaction.transcript or ""
+
+        intent = ""
+        if interaction.intent:
+            intent = interaction.intent.customer_intent
+
+        transaction_type = ""
+        if interaction.intent:
+            transaction_type = interaction.intent.transaction_type
+
+        fraud_indicators = []
+        fraud_reasoning = ""
+
+        if interaction.fraud:
+            fraud_indicators = interaction.fraud.suspicious_indicators or []
+            fraud_reasoning = interaction.fraud.llm_reasoning or ""
+
+        risk_level = ""
+        risk_score = ""
+
+        if interaction.risk:
+            risk_level = interaction.risk.risk_level
+            risk_score = interaction.risk.fraud_risk_score
+
+        urgency_score = ""
+        emotional_score = ""
+
+        if interaction.behavioral:
+            urgency_score = interaction.behavioral.urgency_score
+            emotional_score = interaction.behavioral.emotional_risk_score
+
+        embedding_text = f"""
+        Transcript:
+        {transcript}
+
+        Intent:
+        {intent}
+
+        Transaction Type:
+        {transaction_type}
+
+        Fraud Indicators:
+        {", ".join(fraud_indicators)}
+
+        Fraud Reasoning:
+        {fraud_reasoning}
+
+        Risk Level:
+        {risk_level}
+
+        Risk Score:
+        {risk_score}
+
+        Urgency Score:
+        {urgency_score}
+
+        Emotional Risk Score:
+        {emotional_score}
+        """.strip()
+
+        MAX_EMBEDDING_TEXT_LENGTH = 1500
+
+        return embedding_text[:MAX_EMBEDDING_TEXT_LENGTH]
