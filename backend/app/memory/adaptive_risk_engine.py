@@ -24,9 +24,23 @@ class AdaptiveRiskEngine:
         self.logger.info("Enriching risk for session_id=%s", session_id)
         base_score = int(base_risk.get("fraud_risk_score", 0))
         history = self.session_memory.get_history(session_id)
-        recent_count = len(history)
-        retrieval_boost = min(15, int(retrieval_context.get("retrieved_fraud_patterns", []) and len(retrieval_context["retrieved_fraud_patterns"]) * 4 or 0))
-        history_penalty = min(10, recent_count)
+
+        suspicious_history = [
+            item
+            for item in history
+            if item.risk and item.risk.fraud_risk_score >= 60
+        ]
+
+        retrieval_boost = min(
+            15,
+            int(
+                retrieval_context.get("retrieved_fraud_patterns", [])
+                and len(retrieval_context["retrieved_fraud_patterns"]) * 4
+                or 0
+            )
+        )
+
+        history_penalty = min(15, len(suspicious_history) * 3)
         adjusted_score = min(100, base_score + retrieval_boost + history_penalty)
 
         if adjusted_score >= 75:
