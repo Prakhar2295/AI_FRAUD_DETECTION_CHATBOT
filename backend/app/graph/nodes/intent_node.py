@@ -47,17 +47,69 @@ def create_intent_node(llm_service: OllamaLLMService):
 
 def _build_prompt(transcript: str) -> str:
     return f"""
-Classify the customer intent in this banking voice transcript.
+You are a banking fraud intelligence analyst.
 
-Return only valid JSON with this exact schema:
+Analyze the banking voice transcript and classify:
+1. customer intent
+2. transaction category
+3. possible fraud-oriented intent
+4. confidence level
+
+Focus especially on:
+- OTP requests
+- urgency manipulation
+- credential collection
+- impersonation attempts
+- account access pressure
+- suspicious social engineering patterns
+
+Return ONLY valid JSON.
+
+Schema:
 {{
-  "customer_intent": "short intent label",
+  "customer_intent": "otp_request | balance_inquiry | account_access | credential_collection | complaint | support | unknown",
+
   "transaction_type": "transfer | balance_check | card_issue | account_access | complaint | support | unknown",
+
+  "fraud_intent_detected": true,
+
+  "fraud_intent_type": "urgency_manipulation | impersonation | credential_theft | social_engineering | none",
+
   "confidence": 0.0,
+
   "reasoning": "brief explanation"
 }}
 
+Examples:
+
 Transcript:
+"Please share OTP immediately or your account will be blocked"
+
+Output:
+{{
+  "customer_intent": "otp_request",
+  "transaction_type": "account_access",
+  "fraud_intent_detected": true,
+  "fraud_intent_type": "urgency_manipulation",
+  "confidence": 0.91,
+  "reasoning": "The caller is urgently requesting OTP access using fear-based pressure."
+}}
+
+Transcript:
+"What is my account balance?"
+
+Output:
+{{
+  "customer_intent": "balance_inquiry",
+  "transaction_type": "balance_check",
+  "fraud_intent_detected": false,
+  "fraud_intent_type": "none",
+  "confidence": 0.97,
+  "reasoning": "Legitimate banking inquiry."
+}}
+
+Now analyze this transcript:
+
 \"\"\"{transcript}\"\"\"
 """.strip()
 
