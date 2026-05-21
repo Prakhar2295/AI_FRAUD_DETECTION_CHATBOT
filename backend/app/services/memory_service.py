@@ -132,6 +132,13 @@ class MemoryService:
         {emotional_score}
         """.strip()
 
-        MAX_EMBEDDING_TEXT_LENGTH = 1500
+        from app.config.settings import load_settings
 
-        return embedding_text[:MAX_EMBEDDING_TEXT_LENGTH]
+        settings = load_settings()
+        max_len = getattr(settings, "max_embedding_text_length", 1500)
+
+        # sanitize whitespace and collapse newlines
+        cleaned = "\n".join(line.strip() for line in embedding_text.splitlines() if line.strip())
+        if len(cleaned) <= max_len:
+            return cleaned
+        return cleaned[:max_len]
