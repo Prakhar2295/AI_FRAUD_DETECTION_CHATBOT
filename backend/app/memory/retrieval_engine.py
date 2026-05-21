@@ -32,28 +32,52 @@ class RetrievalEngine:
         top_k: int | None = None,
     ) -> dict[str, Any]:
         self.logger.info("Retrieving similar fraud scenarios for transcript length=%s", len(transcript))
+        settings = __import__("app.config.settings", fromlist=["load_settings"]).load_settings()
+        threshold = getattr(settings, "vector_similarity_threshold", self.similarity_search.threshold)
         query_embedding = self.embedding_service.embed_text(transcript)
         vector_results = self.vector_store.query(
             query_text=transcript,
             n_results=top_k or self.top_k,
             query_embedding=query_embedding,
         )
+
+        # apply similarity filter first
+        vector_results = [r for r in vector_results if (r.get("similarity") or 0.0) >= threshold]
         vector_results = self.similarity_search.filter_results(vector_results)
-        fraud_matches = [
-            {
-                "document_id": hit.get("id"),
-                "similarity": hit.get("similarity", 0.0),
-                "metadata": hit.get("metadata", {}),
-                "document": hit.get("document"),
-            }
-            for hit in vector_results
-        ]
+
+        fraud_matches = []
+        for hit in vector_results:
+            metadata = hit.get("metadata") or {}
+            fraud_score = metadata.get("fraud_risk_score")
+            indicators = metadata.get("suspicious_indicators") or ""
+            # filter low-quality matches: require fraud score and non-empty indicators
+            try:
+                fs = float(fraud_score) if fraud_score is not None else 0.0
+            except Exception:
+                fs = 0.0
+
+            if fs <= 0.0:
+                self.logger.debug("Dropping match with low fraud score: %s", hit.get("id"))
+                continue
+            if not indicators:
+                self.logger.debug("Dropping match with empty suspicious indicators: %s", hit.get("id"))
+                continue
+
+            fraud_matches.append(
+                {
+                    "document_id": hit.get("id"),
+                    "similarity": float(hit.get("similarity", 0.0)),
+                    "metadata": metadata,
+                    "document": hit.get("document"),
+                    "reason": "similarity_and_fraud_score",
+                }
+            )
 
         pattern_matches = self.pattern_store.find_matching_patterns(transcript)
         enriched_metadata = {
             "vector_hit_count": len(fraud_matches),
             "pattern_hit_count": len(pattern_matches),
-            "threshold": self.similarity_search.threshold,
+            "similarity_threshold": threshold,
         }
 
         return {
