@@ -27,6 +27,7 @@ class FraudWorkflowState(TypedDict, total=False):
     fraud_audio: dict[str, Any] | None
     behavioral: dict[str, Any] | None
     behavioral_metadata: dict[str, Any] | None
+    audio_emotion_analysis: dict[str, Any] | None
     retrieved_fraud_patterns: list[dict[str, Any]]
     semantic_retrieval_metadata: dict[str, Any] | None
     historical_fraud_context: dict[str, Any] | None
@@ -53,6 +54,7 @@ def create_initial_state(
     partial_transcript: str | None = None,
     stream_sequence: int | None = None,
     workflow_history: list[dict[str, Any]] | None = None,
+    audio_emotion_analysis: dict[str, Any] | None = None,
 ) -> FraudWorkflowState:
     """Create an initial workflow state for one transcript."""
     return {
@@ -74,6 +76,7 @@ def create_initial_state(
         "fraud_audio": None,
         "behavioral": None,
         "behavioral_metadata": None,
+        "audio_emotion_analysis": audio_emotion_analysis,
         "retrieved_fraud_patterns": [],
         "semantic_retrieval_metadata": None,
         "historical_fraud_context": None,
